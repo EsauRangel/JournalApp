@@ -1,6 +1,6 @@
-import { collection, doc, setDoc } from "firebase/firestore/lite";
+import { collection, deleteDoc, doc, setDoc } from "firebase/firestore/lite";
 import { FirebaseDB } from "../../../firebase/config";
-import { addNewEmptyNote, savingNewNote, setActiveNote, setNotes, setPhotosToActiveNote, setSaving, updateNote } from "./journalSlice";
+import { addNewEmptyNote, deleteNoteById, savingNewNote, setActiveNote, setNotes, setPhotosToActiveNote, setSaving, updateNote } from "./journalSlice";
 import { fileUpload, loadNotes } from "../../../helpers";
 
 
@@ -14,13 +14,16 @@ export const startNewNote = () => {
             date: new Date().getTime(),
         }
 
-        const newDoc = doc(collection(FirebaseDB, `${uid}/journal/notes`));
-        await setDoc(newDoc, newNote);
+        try {
+            const newDoc = doc(collection(FirebaseDB, `${uid}/journal/notes`));
+            await setDoc(newDoc, newNote);
 
-        newNote.id = newDoc.id;
-
-        dispatch(addNewEmptyNote(newNote));
-        dispatch(setActiveNote(newNote));
+            newNote.id = newDoc.id;
+            dispatch(addNewEmptyNote(newNote));
+            dispatch(setActiveNote(newNote));
+        } catch (error) {
+            throw new Error(error.message);
+        }
 
     }
 }
@@ -64,5 +67,17 @@ export const startUploadingFiles = (files = []) => {
 
         const photoUrl = await Promise.all(fileUploadPrimises);
         dispatch(setPhotosToActiveNote(photoUrl));
+    }
+}
+
+export const startDeleteNote = () => {
+    return async (dispatch, getState) => {
+        const { uid } = getState().auth;
+        const { active: note } = getState().journal;
+
+        const docref = doc(FirebaseDB, `${uid}/journal/notes/${note.id}`);
+        await deleteDoc(docref);
+
+        dispatch(deleteNoteById(note.id));
     }
 }
