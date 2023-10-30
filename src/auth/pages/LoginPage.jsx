@@ -8,8 +8,8 @@ import { startGoogleSingIn, startLoginWithEmailPassword } from "../../store/slic
 import { useMemo } from "react";
 
 const formData = {
-  email: "esau@google.com",
-  password: "123456",
+  email: "",
+  password: "",
 }
 export const LoginPage = () => {
   const dispatch = useDispatch();
